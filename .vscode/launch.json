@@ -14,7 +14,7 @@
         "--transpile-only",
         "--exit-child",
         "--cache-directory=caches",
-        "./src/index.ts"
+        "./test/demo.ts"
       ],
       "runtimeArgs": ["--nolazy", "-r", "ts-node/register"],
       "sourceMaps": true,

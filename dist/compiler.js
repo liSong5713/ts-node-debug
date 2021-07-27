@@ -28,12 +28,9 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const os_1 = __importDefault(require("os"));
 const mkdirp_1 = __importDefault(require("mkdirp"));
-const glob_1 = __importDefault(require("glob"));
 const tsconfig_1 = require("tsconfig");
 const get_compiled_path_1 = require("./get-compiled-path");
 const get_cwd_1 = require("./get-cwd");
-const fixPath = (p) => p.replace(/\\/g, '/').replace(/\$/g, '$$$$');
-const sourceMapSupportPath = require.resolve('source-map-support');
 const compileExtensions = ['.ts', '.tsx'];
 const cwd = process.cwd();
 const compilationInstanceStamp = Math.random().toString().slice(2);
@@ -47,66 +44,15 @@ exports.makeCompiler = (options, { log, restart, }) => {
     const tmpDir = options['cache-directory']
         ? path_1.default.resolve(options['cache-directory'])
         : fs_1.default.mkdtempSync(path_1.default.join(os_1.default.tmpdir(), '.ts-node'));
-    const writeChildHookFile = (options) => {
-        const compileTimeout = parseInt(options['compile-timeout']);
-        const getIgnoreVal = (ignore) => {
-            const ignoreVal = !ignore || ignore === 'false'
-                ? 'false'
-                : '[' +
-                    ignore
-                        .split(/,/)
-                        .map((i) => i.trim())
-                        .map((ignore) => 'new RegExp("' + ignore + '")')
-                        .join(', ') +
-                    ']';
-            return ignoreVal;
-        };
-        const varDecl = (name, value) => `const ${name} = '${value}'`;
-        const replacements = [
-            compileTimeout ? ['10000', compileTimeout.toString()] : null,
-            allowJs ? ['allowJs = false', 'allowJs = true'] : null,
-            options['prefer-ts-exts']
-                ? ['preferTs = false', 'preferTs = true']
-                : null,
-            options['exec-check'] ? ['execCheck = false', 'execCheck = true'] : null,
-            options['exit-child'] ? ['exitChild = false', 'exitChild = true'] : null,
-            options['ignore'] !== undefined
-                ? [
-                    'const ignore = [/node_modules/]',
-                    'const ignore = ' + getIgnoreVal(options['ignore']),
-                ]
-                : null,
-            [
-                varDecl('compilationId', ''),
-                varDecl('compilationId', getCompilationId()),
-            ],
-            [varDecl('compiledDir', ''), varDecl('compiledDir', getCompiledDir())],
-            [
-                './get-compiled-path',
-                fixPath(path_1.default.join(__dirname, 'get-compiled-path')),
-            ],
-            [
-                varDecl('readyFile', ''),
-                varDecl('readyFile', getCompilerReadyFilePath()),
-            ],
-            [
-                varDecl('sourceMapSupportPath', ''),
-                varDecl('sourceMapSupportPath', fixPath(sourceMapSupportPath)),
-            ],
-            [
-                varDecl('libPath', ''),
-                varDecl('libPath', __dirname.replace(/\\/g, '\\\\')),
-            ],
-            ['__dirname', '"' + fixPath(__dirname) + '"'],
-        ]
-            .filter((_) => !!_)
-            .map((_) => _);
-        const hookPath = glob_1.default.sync(path_1.default.join(__dirname, 'child-require-hook.{js,ts}'))[0];
-        const fileText = fs_1.default.readFileSync(hookPath, 'utf-8');
-        const fileData = replacements.reduce((text, [what, to]) => {
-            return text.replace(what, to);
-        }, fileText);
-        fs_1.default.writeFileSync(getChildHookPath(), fileData);
+    const getHookChildArgs = (options) => {
+        return [
+            allowJs && '--allowJs',
+            options['exec-check'] && '--execCheck',
+            options['prefer-ts-exts'] && '--preferTs',
+            `--compilationId=${getCompilationId()}`,
+            `--compiledDir=${getCompiledDir()}`,
+            `--readyFile=${getCompilerReadyFilePath()}`,
+        ].filter((item) => item);
     };
     const init = () => {
         registerTsNode();
@@ -115,7 +61,6 @@ exports.makeCompiler = (options, { log, restart, }) => {
         if (allowJs) {
             compileExtensions.push('.js', '.jsx');
         }
-        writeChildHookFile(options);
     };
     const getCompilationId = () => {
         return compilationInstanceStamp;
@@ -187,6 +132,7 @@ exports.makeCompiler = (options, { log, restart, }) => {
         init,
         getCompileReqFilePath,
         getChildHookPath,
+        getHookChildArgs,
         writeReadyFile,
         clearErrorCompile,
         compileChanged: function (fileName) {
@@ -207,7 +153,6 @@ exports.makeCompiler = (options, { log, restart, }) => {
         },
         compile: function (params) {
             const fileName = params.compile;
-            const code = fs_1.default.readFileSync(fileName, 'utf-8');
             const compiledPath = params.compiledPath;
             if (compiledPathsHash[compiledPath]) {
                 return;

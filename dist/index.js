@@ -101,9 +101,9 @@ exports.runDev = (script, scriptArgs, nodeArgs, opts) => {
             if (watched)
                 watcher.add(watched);
         }
-        let cmd = nodeArgs.concat(wrapper, script, scriptArgs, 'id=120');
-        const childHookPath = glob_1.default.sync(path_1.default.join(__dirname, 'child-require-hook.{js,ts}'))[0] ||
-            compiler.getChildHookPath();
+        const hookArgs = compiler.getHookChildArgs(opts);
+        let cmd = nodeArgs.concat(wrapper, script, scriptArgs, ...hookArgs);
+        const childHookPath = glob_1.default.sync(path_1.default.join(__dirname, 'child-require-hook.{js,ts}'))[0];
         cmd = (opts.priorNodeArgs || []).concat(['-r', childHookPath]).concat(cmd);
         log.debug('Starting child process %s', cmd.join(' '));
         child = child_process_1.fork(cmd[0], cmd.slice(1), {
@@ -238,6 +238,11 @@ exports.runDev = (script, scriptArgs, nodeArgs, opts) => {
     }
     process.on('SIGTERM', function () {
         log.debug('Process got SIGTERM');
+        killChild();
+        process.exit(0);
+    });
+    process.on('SIGINT', function () {
+        log.debug('Process got SIGINT');
         killChild();
         process.exit(0);
     });

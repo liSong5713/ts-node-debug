@@ -2,26 +2,28 @@ const fs = require('fs')
 const getCompiledPath = require('./get-compiled-path').getCompiledPath
 const minimist = require('minimist')
 const sep = require('path').sep
-const join = require('path').join
+const path = require('path')
 const extname = require('path').extname
 const execSync = require('child_process').execSync
 const Module = require('module')
 
 const opts = minimist(process.argv.slice(2))
-const { compilationId = '' } = opts
-
+const {
+  allowJs = false,
+  preferTs = false,
+  execCheck = false,
+  compilationId = '',
+  compiledDir = '',
+  readyFile = '',
+} = opts
 const timeThreshold = 0
-const allowJs = false
-const compiledDir = ''
-const preferTs = false
 const ignore = [/node_modules/]
-const readyFile = ''
-const execCheck = false
-const exitChild = false
-const sourceMapSupportPath = ''
-const libPath = ''
+const sourceMapSupportPath = path.join(
+  path.resolve('./node_modules/source-map-support'),
+  'source-map-support.js'
+)
 
-const checkFileScript = join(__dirname, 'check-file-exists.js')
+const checkFileScript = path.join(__dirname, 'check-file-exists.js')
 
 const waitForFile = function (fileName: string) {
   const start = new Date().getTime()
@@ -106,7 +108,7 @@ function registerJsExtension() {
       m: any,
       fileName
     ) {
-      if (fileName.indexOf(libPath) === 0) {
+      if (fileName.indexOf(__dirname) === 0) {
         return old(m, fileName)
       }
       const tsCode: string | undefined = undefined
@@ -153,11 +155,9 @@ if (readyFile) {
   }
 }
 
-if (exitChild) {
-  process.on('SIGTERM', function () {
-    console.log('Child got SIGTERM, exiting.')
-    process.exit()
-  })
-}
+process.on('SIGTERM', function () {
+  console.log('Child got SIGTERM, exiting.')
+  process.exit()
+})
 
 module.exports.registerExtensions = registerExtensions

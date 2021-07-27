@@ -110,11 +110,12 @@ export const runDev = (
     for (const watched of (opts.watch || '').split(',')) {
       if (watched) watcher.add(watched)
     }
+    const hookArgs = compiler.getHookChildArgs(opts)
+    let cmd = nodeArgs.concat(wrapper, script, scriptArgs, ...hookArgs)
+    const childHookPath = glob.sync(
+      path.join(__dirname, 'child-require-hook.{js,ts}')
+    )[0]
 
-    let cmd = nodeArgs.concat(wrapper, script, scriptArgs, '--compiledDir=/var/folders/19/7_2z3w7x38l542mvpr_00pk40000gn/T/.ts-noden8LP3B/compiled')
-    const childHookPath =
-      glob.sync(path.join(__dirname, 'child-require-hook.{js,ts}'))[0] ||
-      compiler.getChildHookPath()
     cmd = (opts.priorNodeArgs || []).concat(['-r', childHookPath]).concat(cmd)
 
     log.debug('Starting child process %s', cmd.join(' '))
@@ -265,9 +266,15 @@ export const runDev = (
     }
   }
 
-  // Relay SIGTERM
+  //  kill child process
   process.on('SIGTERM', function () {
     log.debug('Process got SIGTERM')
+    killChild()
+    process.exit(0)
+  })
+
+  process.on('SIGINT', function () {
+    log.debug('Process got SIGINT')
     killChild()
     process.exit(0)
   })

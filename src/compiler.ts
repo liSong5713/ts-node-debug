@@ -1,25 +1,17 @@
 import * as tsNode from 'ts-node'
-
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import mkdirp from 'mkdirp'
-import rimraf from 'rimraf'
-import glob from 'glob'
 import { resolveSync } from 'tsconfig'
 import { Options } from './bin'
 import { getCompiledPath } from './get-compiled-path'
 import { Log } from './log'
 import { getCwd } from './get-cwd'
 
-const fixPath = (p: string) => p.replace(/\\/g, '/').replace(/\$/g, '$$$$')
-
-const sourceMapSupportPath = require.resolve('source-map-support')
-
 const compileExtensions = ['.ts', '.tsx']
 const cwd = process.cwd()
 const compilationInstanceStamp = Math.random().toString().slice(2)
-
 const originalJsHandler = require.extensions['.js']
 
 export type CompileParams = {
@@ -51,75 +43,15 @@ export const makeCompiler = (
     ? path.resolve(options['cache-directory'])
     : fs.mkdtempSync(path.join(os.tmpdir(), '.ts-node'))
 
-  const writeChildHookFile = (options: Options) => {
-    const compileTimeout = parseInt(options['compile-timeout'])
-
-    const getIgnoreVal = (ignore: string) => {
-      const ignoreVal =
-        !ignore || ignore === 'false'
-          ? 'false'
-          : '[' +
-            ignore
-              .split(/,/)
-              .map((i) => i.trim())
-              .map((ignore) => 'new RegExp("' + ignore + '")')
-              .join(', ') +
-            ']'
-      return ignoreVal
-    }
-
-    const varDecl = (name: string, value: string) => `const ${name} = '${value}'`
-
-    const replacements: string[][] = [
-      compileTimeout ? ['10000', compileTimeout.toString()] : null,
-      allowJs ? ['allowJs = false', 'allowJs = true'] : null,
-      options['prefer-ts-exts']
-        ? ['preferTs = false', 'preferTs = true']
-        : null,
-      options['exec-check'] ? ['execCheck = false', 'execCheck = true'] : null,
-      options['exit-child'] ? ['exitChild = false', 'exitChild = true'] : null,
-      options['ignore'] !== undefined
-        ? [
-            'const ignore = [/node_modules/]',
-            'const ignore = ' + getIgnoreVal(options['ignore']),
-          ]
-        : null,
-      [
-        varDecl('compilationId', ''),
-        varDecl('compilationId', getCompilationId()),
-      ],
-      [varDecl('compiledDir', ''), varDecl('compiledDir', getCompiledDir())],
-      [
-        './get-compiled-path',
-        fixPath(path.join(__dirname, 'get-compiled-path')),
-      ],
-      [
-        varDecl('readyFile', ''),
-        varDecl('readyFile', getCompilerReadyFilePath()),
-      ],
-      [
-        varDecl('sourceMapSupportPath', ''),
-        varDecl('sourceMapSupportPath', fixPath(sourceMapSupportPath)),
-      ],
-      [
-        varDecl('libPath', ''),
-        varDecl('libPath', __dirname.replace(/\\/g, '\\\\')),
-      ],
-      ['__dirname', '"' + fixPath(__dirname) + '"'],
-    ]
-      .filter((_) => !!_)
-      .map((_) => _!)
-
-    const hookPath = glob.sync(
-      path.join(__dirname, 'child-require-hook.{js,ts}')
-    )[0]
-    const fileText = fs.readFileSync(hookPath, 'utf-8')
-
-    const fileData = replacements.reduce((text, [what, to]) => {
-      return text.replace(what, to)
-    }, fileText)
-
-    fs.writeFileSync(getChildHookPath(), fileData)
+  const getHookChildArgs = (options: Options) => {
+    return [
+      allowJs && '--allowJs',
+      options['exec-check'] && '--execCheck',
+      options['prefer-ts-exts'] && '--preferTs',
+      `--compilationId=${getCompilationId()}`,
+      `--compiledDir=${getCompiledDir()}`,
+      `--readyFile=${getCompilerReadyFilePath()}`,
+    ].filter((item) => item)
   }
 
   const init = () => {
@@ -135,8 +67,6 @@ export const makeCompiler = (
     if (allowJs) {
       compileExtensions.push('.js', '.jsx')
     }
-
-    writeChildHookFile(options)
   }
 
   const getCompilationId = () => {
@@ -218,6 +148,7 @@ export const makeCompiler = (
     init,
     getCompileReqFilePath,
     getChildHookPath,
+    getHookChildArgs,
     writeReadyFile,
     clearErrorCompile,
     compileChanged: function (fileName: string) {
@@ -236,7 +167,7 @@ export const makeCompiler = (
     },
     compile: function (params: CompileParams) {
       const fileName = params.compile
-      const code = fs.readFileSync(fileName, 'utf-8')
+      // const code = fs.readFileSync(fileName, 'utf-8')
       const compiledPath = params.compiledPath
 
       // Prevent occasional duplicate compilation requests
@@ -248,6 +179,7 @@ export const makeCompiler = (
       function writeCompiled(code: string, fileName?: string) {
         fs.writeFile(compiledPath, code, (err) => {
           err && log.error(err)
+          // TODO 优化
           fs.writeFile(compiledPath + '.done', '', (err) => {
             err && log.error(err)
           })
