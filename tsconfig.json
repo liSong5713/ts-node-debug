@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    //"strict": true,
+    "target": "ES2018",
+    "module": "commonjs",
+    "listEmittedFiles": true,
+    "declaration": true,
+    //"noImplicitAny": true,
+    "removeComments": true,
+    "isolatedModules": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "preserveConstEnums": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "newLine": "LF",
+    "sourceMap": false,
+    "suppressImplicitAnyIndexErrors": true,
+    "noEmitOnError": true,
+    "lib": ["ES2018", "ESNext", "DOM"],
+    "outDir": "./dist/",
+    "allowJs": true,
+    "diagnostics": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "test"]
+}
