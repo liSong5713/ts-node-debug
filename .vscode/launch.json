@@ -5,6 +5,28 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "DEBUG JS",
+      "type": "node",
+      "request": "launch",
+      "args": [
+        "${workspaceRoot}/dist/bin.js",
+        "--respawn",
+        "--transpile-only",
+        "--exit-child",
+        "--cache-directory=caches",
+        "./test/demo.ts"
+      ],
+      "sourceMaps": true,
+      "cwd": "${workspaceRoot}",
+      "protocol": "inspector",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "NODE_ENV": "dev",
+        "TS_NODE_PROJECT": "${workspaceRoot}/tsconfig.json" //指定vscode配置文件
+      }
+    },
+    {
       "name": "DEBUG TS",
       "type": "node",
       "request": "launch",

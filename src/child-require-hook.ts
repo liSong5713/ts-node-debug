@@ -12,11 +12,11 @@ const {
   allowJs = false,
   preferTs = false,
   execCheck = false,
-  compilationId = '',
   compiledDir = '',
   readyFile = '',
 } = opts
-const timeThreshold = 0
+// TODO 更改为500
+const timeThreshold = 0 //500ms 编译未结束则认为失败
 const ignore = [/node_modules/]
 const sourceMapSupportPath = path.join(
   path.resolve('./node_modules/source-map-support'),
@@ -28,15 +28,11 @@ const checkFileScript = path.join(__dirname, 'check-file-exists.js')
 const waitForFile = function (fileName: string) {
   const start = new Date().getTime()
   while (true) {
-    const exists = execCheck
-      ? execSync(['node', checkFileScript, '"' + fileName + '"'].join(' '), {
-          stdio: 'inherit',
-        }) || true
-      : fs.existsSync(fileName)
-
-    if (exists) {
-      return
-    }
+    let content = ''
+    try {
+      content = fs.readFileSync(fileName, 'utf-8')
+    } catch (error) {}
+    if (content) return content
     const passed = new Date().getTime() - start
     if (timeThreshold && passed > timeThreshold) {
       throw new Error('Could not require ' + fileName)
@@ -44,29 +40,17 @@ const waitForFile = function (fileName: string) {
   }
 }
 
-const sendFsCompileRequest = (fileName: string, compiledPath: string) => {
-  const compileRequestFile = [compiledDir, compilationId + '.req'].join(sep)
-  fs.writeFileSync(compileRequestFile, [fileName, compiledPath].join('\n'))
-}
-
 const compile = (code: string, fileName: string) => {
   const compiledPath = getCompiledPath(code, fileName, compiledDir)
-  if (process.send) {
-    try {
-      process.send({
-        compile: fileName,
-        compiledPath: compiledPath,
-      })
-    } catch (e) {
-      console.warn('Error while sending compile request via process.send')
-      sendFsCompileRequest(fileName, compiledPath)
-    }
-  } else {
-    sendFsCompileRequest(fileName, compiledPath)
+  try {
+    process.send({
+      compile: fileName,
+      compiledPath: compiledPath,
+    })
+  } catch (e) {
+    console.error('Error while sending compile request via process.send')
   }
-
-  waitForFile(compiledPath + '.done')
-  const compiled = fs.readFileSync(compiledPath, 'utf-8')
+  const compiled = waitForFile(compiledPath)
   return compiled
 }
 
@@ -146,6 +130,7 @@ sourceMapRequire(sourceMapSupportPath).install({
 registerJsExtension()
 registerExtensions(['.ts', '.tsx'])
 
+// 是否需要等待编译
 if (readyFile) {
   const time = new Date().getTime()
   while (!fs.existsSync(readyFile)) {

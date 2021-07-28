@@ -103,7 +103,6 @@ export const runDev = (
   /**
    * Run the wrapped script.
    */
-  let compileReqWatcher: chokidar.FSWatcher
   function start() {
     if (cfg.clear) process.stdout.write('\u001bc')
 
@@ -120,6 +119,7 @@ export const runDev = (
 
     log.debug('Starting child process %s', cmd.join(' '))
 
+    // start hook-child-process to complier
     child = fork(cmd[0], cmd.slice(1), {
       cwd: process.cwd(),
       env: process.env,
@@ -127,39 +127,7 @@ export const runDev = (
 
     starting = false
 
-    if (compileReqWatcher) {
-      compileReqWatcher.close()
-    }
-
-    compileReqWatcher = chokidar.watch([], {
-      usePolling: opts.poll,
-      interval: parseInt(opts.interval) || undefined,
-    })
-
     let currentCompilePath: string
-
-    fs.writeFileSync(compiler.getCompileReqFilePath(), '')
-    compileReqWatcher.add(compiler.getCompileReqFilePath())
-    compileReqWatcher.on('change', function (file) {
-      fs.readFile(file, 'utf-8', function (err, data) {
-        if (err) {
-          log.error('Error reading compile request file', err)
-          return
-        }
-        const split = data.split('\n')
-        const compile = split[0]
-        const compiledPath = split[1]
-        if (currentCompilePath == compiledPath) return
-        currentCompilePath = compiledPath
-
-        if (compiledPath) {
-          compiler.compile({
-            compile: compile,
-            compiledPath: compiledPath,
-          })
-        }
-      })
-    })
 
     child.on('message', function (message: CompileParams) {
       if (
@@ -206,6 +174,7 @@ export const runDev = (
       notify(m.error!, m.message!, 'error')
       stop(m.willTerminate)
     })
+    // write ready file mean  start complier
     compiler.writeReadyFile()
   }
   const killChild = () => {

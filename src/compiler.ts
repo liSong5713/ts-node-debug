@@ -48,7 +48,6 @@ export const makeCompiler = (
       allowJs && '--allowJs',
       options['exec-check'] && '--execCheck',
       options['prefer-ts-exts'] && '--preferTs',
-      `--compilationId=${getCompilationId()}`,
       `--compiledDir=${getCompiledDir()}`,
       `--readyFile=${getCompilerReadyFilePath()}`,
     ].filter((item) => item)
@@ -90,11 +89,6 @@ export const makeCompiler = (
       .replace(/\\/g, '/')
   }
 
-  const getChildHookPath = () => {
-    return path
-      .join(os.tmpdir(), 'ts-node-dev-hook-' + compilationInstanceStamp + '.js')
-      .replace(/\\/g, '/')
-  }
   const writeReadyFile = () => {
     fs.writeFileSync(getCompilerReadyFilePath(), '')
   }
@@ -147,7 +141,6 @@ export const makeCompiler = (
     tsConfigPath,
     init,
     getCompileReqFilePath,
-    getChildHookPath,
     getHookChildArgs,
     writeReadyFile,
     clearErrorCompile,
@@ -177,12 +170,11 @@ export const makeCompiler = (
       compiledPathsHash[compiledPath] = true
 
       function writeCompiled(code: string, fileName?: string) {
-        fs.writeFile(compiledPath, code, (err) => {
+        fs.writeFile(compiledPath + '.lock', code, (err) => {
           err && log.error(err)
-          // TODO 优化
-          fs.writeFile(compiledPath + '.done', '', (err) => {
-            err && log.error(err)
-          })
+          if (!err) {
+            fs.renameSync(compiledPath + '.lock', compiledPath)
+          }
         })
       }
       if (fs.existsSync(compiledPath)) {

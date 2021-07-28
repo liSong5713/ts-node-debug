@@ -15,10 +15,10 @@
   },
   "license": "MIT",
   "bin": {
-    "ts-node-dev": "src/bin.js",
-    "tsnd": "src/bin.js"
+    "ts-node-dev": "dist/bin.js",
+    "tsnd": "dist/bin.js"
   },
-  "main": "lib",
+  "main": "dist",
   "files": [
     "icons",
     "lib"

@@ -1,7 +1,5 @@
-import path from 'path'
 const childProcess = require('child_process')
 import { fork, ForkOptions } from 'child_process'
-const resolve = require('resolve').sync
 import { makeHook } from './hook'
 import * as ipc from './ipc'
 import { resolveMain } from './resolveMain'

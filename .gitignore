@@ -4,4 +4,5 @@
 *.log
 .ts-node
 .tmp
-./dist
+/dist
+
