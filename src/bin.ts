@@ -84,6 +84,7 @@ const devFlags = {
     'error-recompile',
     'quiet',
     'rs',
+    'watched',
   ],
   string: [
     'dir',
@@ -110,6 +111,7 @@ type DevOptions = {
   notify: boolean
   clear: boolean
   cls: boolean
+  watched: boolean
   'ignore-watch': string
   'all-deps': boolean
   'deps-level': string
@@ -138,6 +140,7 @@ const opts = minimist(devArgs, {
   },
   default: {
     fork: true,
+    watched: true,
   },
   unknown: function (arg) {
     unknown.push(arg)

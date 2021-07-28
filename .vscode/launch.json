@@ -35,6 +35,8 @@
         "--respawn",
         "--transpile-only",
         "--exit-child",
+        "--no-watched",
+        "--watch=src",
         "--cache-directory=caches",
         "./test/demo.ts"
       ],

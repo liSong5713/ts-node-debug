@@ -1,6 +1,5 @@
 import { fork, ChildProcess } from 'child_process'
 import chokidar from 'chokidar'
-import fs from 'fs'
 import readline from 'readline'
 import glob from 'glob'
 import path from 'path'
@@ -66,6 +65,9 @@ export const runDev = (
       log.info('Run ulimit -n 10000 to increase the file descriptor limit.')
       if (cfg.deps) log.info('... or add `--no-deps` to use less file handles.')
     })
+    if (!opts.watched) {
+      watcher.close()
+    }
     return watcher
   }
   let watcher = initWatcher()
@@ -86,13 +88,11 @@ export const runDev = (
     })
   }
 
-
   /**
    * Run the wrapped script.
    */
   function start() {
     if (cfg.clear) process.stdout.write('\u001bc')
-
     for (const watched of (opts.watch || '').split(',')) {
       if (watched) watcher.add(watched)
     }
@@ -202,12 +202,12 @@ export const runDev = (
       notify('Restarting', file + ' has been modified')
     }
     compiler.compileChanged(file)
+
     if (starting) {
       log.debug('Already starting')
       return
     }
     log.debug('Removing all watchers from files')
-    //watcher.removeAll()ya
 
     watcher.close()
     watcher = initWatcher()

@@ -144,12 +144,12 @@ export const makeCompiler = (
     getHookChildArgs,
     writeReadyFile,
     clearErrorCompile,
-    compileChanged: function (fileName: string) {
+    compileChanged: function (fileName: string): boolean {
       const ext = path.extname(fileName)
-      if (compileExtensions.indexOf(ext) < 0) return
+      if (compileExtensions.indexOf(ext) < 0) return false
       try {
         const code = fs.readFileSync(fileName, 'utf-8')
-        compiler.compile({
+        return compiler.compile({
           code: code,
           compile: fileName,
           compiledPath: getCompiledPath(code, fileName, getCompiledDir()),
@@ -158,15 +158,16 @@ export const makeCompiler = (
         console.error(e)
       }
     },
-    compile: function (params: CompileParams) {
+    compile: function (params: CompileParams): boolean {
       const fileName = params.compile
       // const code = fs.readFileSync(fileName, 'utf-8')
       const compiledPath = params.compiledPath
 
       // Prevent occasional duplicate compilation requests
       if (compiledPathsHash[compiledPath]) {
-        return
+        return true
       }
+
       compiledPathsHash[compiledPath] = true
 
       function writeCompiled(code: string, fileName?: string) {
@@ -178,7 +179,7 @@ export const makeCompiler = (
         })
       }
       if (fs.existsSync(compiledPath)) {
-        return
+        return true
       }
       const starTime = new Date().getTime()
       const m: any = {
@@ -212,7 +213,7 @@ export const makeCompiler = (
         }, 0)
 
         if (!options['error-recompile']) {
-          return
+          return false
         }
         const timeoutMs =
           parseInt(process.env.TS_NODE_DEV_ERROR_RECOMPILE_TIMEOUT || '0') ||

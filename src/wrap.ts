@@ -4,8 +4,6 @@ import { makeHook } from './hook'
 import * as ipc from './ipc'
 import { resolveMain } from './resolveMain'
 import { makeCfg } from './cfg'
-// const Module = require('module')
-// Remove wrap.js from the argv array
 
 process.argv.splice(1, 1)
 
@@ -43,12 +41,6 @@ if (cfg.fork) {
   childProcess.fork = newFork
 }
 
-// const lastRequired = null
-// const origRequire = Module.prototype.require
-// Module.prototype.require = function (requirePath) {
-//   lastRequired = { path: requirePath, filename: this.filename }
-//   return origRequire.apply(this, arguments)
-// }
 
 // Error handler that displays a notification and logs the stack to stderr:
 let caught = false
