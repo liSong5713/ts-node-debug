@@ -15,10 +15,6 @@ import { makeCfg } from './cfg'
 import { makeNotify } from './notify'
 import { makeLog } from './log'
 
-const version = require('../package.json').version
-const tsNodeVersion = require('ts-node').VERSION
-const tsVersion = require('typescript').version
-
 export const runDev = (
   script: string,
   scriptArgs: string[],
