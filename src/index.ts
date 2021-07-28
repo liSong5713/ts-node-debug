@@ -90,15 +90,6 @@ export const runDev = (
     })
   }
 
-  log.info(
-    'ts-node-dev ver. ' +
-      version +
-      ' (using ts-node ver. ' +
-      tsNodeVersion +
-      ', typescript ver. ' +
-      tsVersion +
-      ')'
-  )
 
   /**
    * Run the wrapped script.

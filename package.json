@@ -15,8 +15,8 @@
   },
   "license": "MIT",
   "bin": {
-    "ts-node-dev": "dist/bin.js",
-    "tsnd": "dist/bin.js"
+    "ts-node-debug": "dist/bin.js",
+    "tsd": "dist/bin.js"
   },
   "main": "dist",
   "files": [

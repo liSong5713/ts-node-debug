@@ -15,8 +15,8 @@ const {
   compiledDir = '',
   readyFile = '',
 } = opts
-// TODO 更改为500
-const timeThreshold = 0 //500ms 编译未结束则认为失败
+
+const timeThreshold = 1000 //1000ms  limit for compile single .ts file
 const ignore = [/node_modules/]
 const sourceMapSupportPath = path.join(
   path.resolve('./node_modules/source-map-support'),
