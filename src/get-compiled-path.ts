@@ -9,7 +9,7 @@ export const getCompiledPath = (
   compiledDir: string
 ) => {
   const hash = crypto
-    .createHash('sha256')
+    .createHash('MD5')
     .update(fileName + code, 'utf8')
     .digest('hex')
   fileName = path.relative(cwd, fileName)
