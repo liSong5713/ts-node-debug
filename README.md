@@ -1,42 +1,40 @@
-# ts-node-dev
+# ts-node-debug
 
-> Tweaked version of [node-dev](https://github.com/fgnass/node-dev) that uses [ts-node](https://github.com/TypeStrong/ts-node) under the hood.
+> Base on [ts-node-dev](https://github.com/wclr/ts-node-dev) and optimize child-process without extra file such as ts-node-hook-**.js ***.req
 
 It restarts target node process when any of required files changes (as standard `node-dev`) but shares [Typescript](https://github.com/Microsoft/TypeScript/) compilation process between restarts. This significantly increases speed of restarting comparing to `node-dev -r ts-node/register ...`, `nodemon -x ts-node ...` variations because there is no need to instantiate `ts-node` compilation each time.
 
 ## Install
 
-![npm (scoped)](https://img.shields.io/npm/v/ts-node-dev.svg?maxAge=86400) [![Build Status](https://travis-ci.com/wclr/ts-node-dev.svg?branch=master)](https://travis-ci.com/wclr/ts-node-dev)
-
 ```
-yarn add ts-node-dev --dev
+yarn add ts-node-debug --dev
 ```
 
 ```
-npm i ts-node-dev --save-dev
+npm i ts-node-debug --save-dev
 ```
 
 ## Usage
 
 ```
-ts-node-dev [node-dev|ts-node flags] [ts-node-dev flags] [node cli flags] [--] [script] [script arguments]
+ts-node-debug [node-dev|ts-node flags] [ts-node-debug flags] [node cli flags] [--] [script] [script arguments]
 ```
 
 So you just combine [node-dev](https://github.com/fgnass/node-dev) and [ts-node](https://github.com/TypeStrong/ts-node) options (see docs of those packages):
 
 ```
-ts-node-dev --respawn --transpile-only server.ts
+ts-node-debug --respawn --transpile-only server.ts
 ```
 
-There is also short alias `tsnd` for running `ts-node-dev`:
+There is also short alias `tsd` for running `ts-node-debug`:
 
 ```
-tsnd --respawn server.ts
+tsd --respawn server.ts
 ```
 
 Look up flags and options can be used [in ts-node's docs](https://github.com/TypeStrong/ts-node#cli-and-programmatic-options).
 
-**Also there are additional options specific to `ts-node-dev`:**
+**Also there are additional options specific to `ts-node-debug`:**
 
 * `--ignore-watch` - (default: []) - files/folders to be [ignored by `node-dev`](https://github.com/fgnass/node-dev#ignore-paths). **But this behaviour is enhanced:** it also supports regular expression in the ignore strings and will check absolute paths of required files for match.
 
@@ -54,24 +52,24 @@ Look up flags and options can be used [in ts-node's docs](https://github.com/Typ
 * `--notify` - to display desktop-notifications (Notifications are only displayed if `node-notifier` is installed).
 * `--cache-directory` - tmp dir which is used to keep the compiled sources (by default os tmp directory is used)
 
-If you need to detect that you are running with `ts-node-dev`, check if `process.env.TS_NODE_DEV` is set.
+If you need to detect that you are running with `ts-node-debug`, check if `process.env.TS_NODE_DEV` is set.
 
 
 **Points of notice:**
 
 - If you want desktop-notifications you should install `node-notifier` package and use `--notify` flag.
 
-- Especially for large code bases always consider running with `--transpile-only` flag which is normal for dev workflow and will speed up things greatly. Note, that `ts-node-dev` will not put watch handlers on TS files that contain only types/interfaces (used only for type checking) - this is current limitation by design.
+- Especially for large code bases always consider running with `--transpile-only` flag which is normal for dev workflow and will speed up things greatly. Note, that `ts-node-debug` will not put watch handlers on TS files that contain only types/interfaces (used only for type checking) - this is current limitation by design.
 
 - `--ignore-watch` will NOT affect files ignored by TS compilation. Use `--ignore` option (or `TS_NODE_IGNORE` env variable) to pass **RegExp strings** for filtering files that should not be compiled, by default `/node_modules/` are ignored.
 
 - Unknown flags (`node` cli flags are considered to be so) are treated like string value flags by default. The right solution to avoid ambiguity is to separate script name from option flags with `--`, for example:
 
   ```
-  ts-node-dev --inspect -- my-script.ts
+  ts-node-debug --inspect -- my-script.ts
   ```
 
-- The good thing is that `ts-node-dev` watches used `tsconfig.json` file, and will reinitialize compilation on its change, but you have to restart the process manually when you update used version of `typescript` or make any other changes that may effect compilation results.
+- The good thing is that `ts-node-debug` watches used `tsconfig.json` file, and will reinitialize compilation on its change, but you have to restart the process manually when you update used version of `typescript` or make any other changes that may effect compilation results.
 
 ## Issues
 
