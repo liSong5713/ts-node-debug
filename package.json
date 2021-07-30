@@ -84,8 +84,5 @@
     "node-notifier": {
       "optional": true
     }
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org"
   }
 }
