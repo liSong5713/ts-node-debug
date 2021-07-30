@@ -1,5 +1,5 @@
 {
-  "name": "ts-node-dev",
+  "name": "ts-node-debug",
   "version": "1.0.0",
   "description": "Compiles your TS app and restarts when files are modified.",
   "keywords": [
@@ -33,12 +33,8 @@
   "scripts": {
     "ts-node-dev": "node ./dist/bin",
     "build": "rm -rf ./dist  && tsc -p tsconfig.build.json",
-    "release": "np",
     "test": "yarn build && ts-node -T node_modules/mocha/bin/mocha test/*.test.ts",
     "test-dev": "yarn ts-node-dev -T --respawn --deps --watch lib node_modules/mocha/bin/mocha test/*.test.ts --output",
-    "test-docker": "docker-compose up",
-    "ci": "yarn test",
-    "ci-local": "docker run --name travis-debug -dit quay.io/travisci/ci-nodejs",
     "manual": "yarn ts-node test/manual/run.ts"
   },
   "dependencies": {
