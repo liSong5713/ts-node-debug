@@ -160,7 +160,6 @@ export const makeCompiler = (
     },
     compile: function (params: CompileParams): boolean {
       const fileName = params.compile
-      // const code = fs.readFileSync(fileName, 'utf-8')
       const compiledPath = params.compiledPath
 
       // Prevent occasional duplicate compilation requests

@@ -16,7 +16,7 @@ const {
   readyFile = '',
 } = opts
 
-const timeThreshold = 1000 //1000ms  limit for compile single .ts file
+const timeThreshold = 0 //  limit for compile single .ts file
 const ignore = [/node_modules/]
 const sourceMapSupportPath = path.join(
   path.resolve('./node_modules/source-map-support'),
@@ -43,6 +43,7 @@ const waitForFile = function (fileName: string) {
 const compile = (code: string, fileName: string) => {
   const compiledPath = getCompiledPath(code, fileName, compiledDir)
   try {
+    // send master process to complier
     process.send({
       compile: fileName,
       compiledPath: compiledPath,
@@ -50,6 +51,7 @@ const compile = (code: string, fileName: string) => {
   } catch (e) {
     console.error('Error while sending compile request via process.send')
   }
+  //  get ts-node compiled file
   const compiled = waitForFile(compiledPath)
   return compiled
 }

@@ -1,8 +1,6 @@
 import crypto from 'crypto'
 import path from 'path'
 
-const cwd = process.cwd()
-
 export const getCompiledPath = (
   code: string,
   fileName: string,
@@ -12,7 +10,6 @@ export const getCompiledPath = (
     .createHash('MD5')
     .update(fileName + code, 'utf8')
     .digest('hex')
-  fileName = path.relative(cwd, fileName)
-  const hashed = fileName.replace(/[^\w]/g, '_') + '_' + hash + '.js'
-  return path.join(compiledDir, hashed)
+  // const hashed = fileName.replace(/[^\w]/g, '_') + '_' + hash + '.js'
+  return path.join(compiledDir, hash.concat('.js'))
 }
