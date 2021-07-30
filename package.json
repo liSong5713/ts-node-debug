@@ -18,10 +18,9 @@
     "ts-node-debug": "dist/bin.js",
     "tsd": "dist/bin.js"
   },
-  "main": "dist",
+  "main": "dist/index.js",
   "files": [
-    "icons",
-    "lib"
+    "dist"
   ],
   "prettier": {
     "singleQuote": true,
@@ -31,7 +30,8 @@
     "node": ">=10"
   },
   "scripts": {
-    "ts-node-dev": "node ./dist/bin",
+    "prepublishOnly": "rm -rf dist && npm run build",
+    "ts-node-debug": "node ./dist/bin",
     "build": "rm -rf ./dist  && tsc -p tsconfig.build.json",
     "test": "yarn build && ts-node -T node_modules/mocha/bin/mocha test/*.test.ts",
     "test-dev": "yarn ts-node-dev -T --respawn --deps --watch lib node_modules/mocha/bin/mocha test/*.test.ts --output",

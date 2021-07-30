@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { runDev } from '.'
+import { runDev } from './index'
 import minimist from 'minimist'
 
 const nodeArgs: string[] = []
