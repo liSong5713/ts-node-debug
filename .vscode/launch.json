@@ -33,6 +33,7 @@
       "args": [
         "${workspaceRoot}/src/bin.ts",
         "--respawn",
+        "--transpile-only",
         // "--no-watched",
         "--watch=src",
         "--cache-directory=caches",
