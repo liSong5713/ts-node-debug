@@ -70,21 +70,4 @@ process.on('uncaughtException', function (err: any) {
 makeHook(cfg, module, function (file) {
   ipc.send({ required: file })
 })
-
-// Check if a module is registered for this extension
-// const ext = path.extname(main).slice(1)
-// const mod = cfg.extensions[ext]
-
-// // Support extensions where 'require' returns a function that accepts options
-// if (typeof mod == 'object' && mod.name) {
-//   const fn = require(resolve(mod.name, { basedir: path.dirname(main) }))
-//   if (typeof fn == 'function' && mod.options) {
-//     // require returned a function, call it with options
-//     fn(mod.options)
-//   }
-// } else if (typeof mod == 'string') {
-//   require(resolve(mod, { basedir: path.dirname(main) }))
-// }
-
-// Execute the wrapped script
 require(main)
