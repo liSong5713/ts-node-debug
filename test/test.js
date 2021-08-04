@@ -1,3 +1,3 @@
 module.exports = {
-  a:'test'
+  value:6
 }

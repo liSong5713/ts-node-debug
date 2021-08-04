@@ -23,7 +23,7 @@ ts-node-debug [node-dev|ts-node flags] [ts-node-debug flags] [node cli flags] [-
 So you just combine [node-dev](https://github.com/fgnass/node-dev) and [ts-node](https://github.com/TypeStrong/ts-node) options (see docs of those packages):
 
 ```
-ts-node-debug --respawn --transpile-only server.ts
+ts-node-debug --respawn server.ts
 ```
 
 There is also short alias `tsd` for running `ts-node-debug`:
@@ -36,19 +36,14 @@ Look up flags and options can be used [in ts-node's docs](https://github.com/Typ
 
 **Also there are additional options specific to `ts-node-debug`:**
 
-* `--ignore-watch` - (default: []) - files/folders to be [ignored by `node-dev`](https://github.com/fgnass/node-dev#ignore-paths). **But this behaviour is enhanced:** it also supports regular expression in the ignore strings and will check absolute paths of required files for match.
-
 * `--deps` - Also watch `node_modules`; by default watching is turned off
 
 * `--debug` - Some additional [DEBUG] output
 * `--quiet` - Silent [INFO] messages
-* `--interval` - Polling interval (ms) - DOESN'T WORK CURRENTLY
 * `--debounce` - Debounce file change events (ms, non-polling mode)
 * `--clear` (`--cls`) - Will clear screen on restart
 * `--watch` - Explicitly add arbitrary files or folders to watch and restart on change (list separated by commas, [chokidar](https://github.com/paulmillr/chokidar) patterns)
 * `--watched` -  Enable file changes and restarts
-* `--exit-child` - Adds 'SIGTERM' exit handler in a child process.
-* `--rs` - Allow to restart with "rs" line entered in stdio, disabled by default.
 * `--notify` - to display desktop-notifications (Notifications are only displayed if `node-notifier` is installed).
 * `--cache-directory` - tmp dir which is used to keep the compiled sources (by default os tmp directory is used)
 
@@ -59,9 +54,7 @@ If you need to detect that you are running with `ts-node-debug`, check if `proce
 
 - If you want desktop-notifications you should install `node-notifier` package and use `--notify` flag.
 
-- Especially for large code bases always consider running with `--transpile-only` flag which is normal for dev workflow and will speed up things greatly. Note, that `ts-node-debug` will not put watch handlers on TS files that contain only types/interfaces (used only for type checking) - this is current limitation by design.
-
-- `--ignore-watch` will NOT affect files ignored by TS compilation. Use `--ignore` option (or `TS_NODE_IGNORE` env variable) to pass **RegExp strings** for filtering files that should not be compiled, by default `/node_modules/` are ignored.
+- Especially for large code bases always consider running with config `transpileOnly:true` in `tsconfig.json`  which is normal for dev workflow and will speed up things greatly. Note, that `ts-node-debug` will not put watch handlers on TS files that contain only types/interfaces (used only for type checking) - this is current limitation by design [check it]('https://github.com/TypeStrong/ts-node#options').
 
 - Unknown flags (`node` cli flags are considered to be so) are treated like string value flags by default. The right solution to avoid ambiguity is to separate script name from option flags with `--`, for example:
 
