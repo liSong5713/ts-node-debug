@@ -4,10 +4,8 @@ import path from 'path'
 import glob from 'glob'
 import { makeCfg } from './utils/cfg'
 
-process.argv.splice(1, 1)
-
 // Resolve the location of the main script relative to cwd
-const main = glob.sync(path.resolve(process.argv[1]))[0]
+const main = glob.sync(path.resolve(process.argv[2]))[0]
 const cfg = makeCfg(main, {})
 if (!process.env.TS_NODE_DEBUG) {
   process.env.TS_NODE_DEBUG = 'true'

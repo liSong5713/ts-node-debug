@@ -18,7 +18,6 @@ export type Config = {
   deps: number
   timestamp: number
   clear: boolean
-  dedupe: boolean
   ignore: string[]
   respawn: boolean
   debug: boolean
@@ -37,11 +36,9 @@ export const makeCfg = (main: string, opts: Partial<Options>): Config => {
   if (opts) {
     // Overwrite with CLI opts ...
     if (opts['deps'] || opts['all-deps']) c.deps = -1
-    if (opts.dedupe) c.dedupe = true
     if (opts.respawn) c.respawn = true
     if (opts.notify === false) c.notify = false
     if (opts.clear || opts.cls) c.clear = true
-    c.fork = opts.fork
   }
 
   const ignoreWatchItems: string[] = opts['ignore-watch']
@@ -59,7 +56,6 @@ export const makeCfg = (main: string, opts: Partial<Options>): Config => {
     deps: c.deps,
     timestamp: c.timestamp || (c.timestamp !== false && 'HH:MM:ss'),
     clear: !!c.clear,
-    dedupe: !!c.dedupe,
     ignore: ignore,
     respawn: c.respawn || false,
     debug: !!opts.debug,

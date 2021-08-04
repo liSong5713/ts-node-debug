@@ -14,33 +14,18 @@ const tsNodeFlags = {
     'emit',
     'files',
     'pretty',
-    'transpile-only',
-    'prefer-ts-exts',
     'prefer-ts',
     'log-error',
     'skip-project',
     'skip-ignore',
-    'compiler-host',
     'script-mode',
   ],
 
-  string: [
-    'compiler',
-    'project',
-    'ignore',
-    'ignore-diagnostics',
-    'compiler-options',
-  ],
+  string: ['project'],
 }
 
 const tsNodeAlias = {
-  'transpile-only': 'T',
-  'compiler-host': 'H',
-  ignore: 'I',
-  'ignore-diagnostics': 'D',
-  'compiler-options': 'O',
   compiler: 'C',
-  project: 'P',
   'script-mode': 's',
 }
 
@@ -50,7 +35,6 @@ type TSNodeOptions = {
   'compiler-options': any
   'prefer-ts-exts': boolean
   ignore?: string
-
   dir: string
   'script-mode': boolean
   emit: boolean
@@ -101,25 +85,16 @@ const devFlags = {
 type DevOptions = {
   poll: boolean
   debug: boolean
-  fork: boolean
   watch: string
-  interval: string
-  rs: boolean
   deps: boolean
-  dedupe: boolean
   respawn: boolean
   notify: boolean
   clear: boolean
   cls: boolean
   watched: boolean
-  'ignore-watch': string
   'all-deps': boolean
   'deps-level': string
-  'compile-timeout': string
-  'exec-check': boolean
-  'exit-child': boolean
   'cache-directory': string
-  'error-recompile': boolean
   quiet: boolean
   'tree-kill': boolean
 }

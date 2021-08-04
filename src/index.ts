@@ -46,8 +46,7 @@ export const runDev = (
   function initWatcher() {
 
     const watcher = chokidar.watch([], {
-      usePolling: opts.poll,
-      interval: parseInt(opts.interval) || undefined,
+      usePolling: opts.poll
     })
     watcher.on('change', restart)
 
