@@ -28,11 +28,9 @@ const checkFileScript = path.join(__dirname, 'check-file-exists.js')
 const waitForFile = function (fileName: string) {
   const start = new Date().getTime()
   while (true) {
-    let content = ''
-    try {
-      content = fs.readFileSync(fileName, 'utf-8')
-    } catch (error) {}
-    if (content) return content
+    if (fs.existsSync(fileName)) {
+      return fs.readFileSync(fileName, 'utf-8')
+    }
     const passed = new Date().getTime() - start
     if (timeThreshold && passed > timeThreshold) {
       throw new Error('Could not require ' + fileName)

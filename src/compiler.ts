@@ -112,7 +112,7 @@ export const makeCompiler = (
 
     const DEFAULTS = tsNode.DEFAULTS
 
-    tsNode.register({
+   tsNode.register({
       // --dir does not work (it gives a boolean only) so we only check for script-mode
       dir: getCwd(options['dir'], options['script-mode'], scriptPath),
       scope: options['scope'] || DEFAULTS.scope,

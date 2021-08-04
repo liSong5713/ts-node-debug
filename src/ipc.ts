@@ -32,6 +32,7 @@ export const on = function (
   function handleMessage(m: IPCMessage) {
     if (isNodeDevMessage(m) && type in m) cb(m)
   }
+  // http://nodejs.cn/api/child_process.html   msg body as {cmd:'NODE_**'}
   proc.on('internalMessage', handleMessage)
   proc.on('message', handleMessage)
 }
