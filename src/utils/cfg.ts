@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { Options } from './bin'
+import { Options } from '../bin'
 
 function read(dir: string) {
   const f = path.resolve(dir, '.node-dev.json')

@@ -1,19 +1,16 @@
 import { fork, ChildProcess } from 'child_process'
 import chokidar from 'chokidar'
-import readline from 'readline'
 import glob from 'glob'
 import path from 'path'
 
 const kill = require('tree-kill')
 
-import * as ipc from './ipc'
-import { resolveMain } from './resolveMain'
+import * as ipc from './utils/ipc'
 import { Options } from './bin'
-import Compiler, { makeCompiler, CompileParams } from './compiler'
-import Complier from './compiler'
-import { makeCfg } from './cfg'
-import { makeNotify } from './notify'
-import { makeLog } from './log'
+import { makeCfg } from './utils/cfg'
+import { makeNotify } from './utils/notify'
+import { makeLog } from './utils/log'
+import { createCompiledDir } from './utils/helper'
 
 export const runDev = (
   script: string,
@@ -41,14 +38,13 @@ export const runDev = (
       })
     | undefined
 
-  const wrapper = glob.sync(path.join(__dirname, 'wrap.{js,ts}'))[0]
-  const main = resolveMain(script)
+  const wrapper = glob.sync(path.join(__dirname, 'child-wrap.{js,ts}'))[0]
+  const main = glob.sync(path.resolve(script))[0]
   const cfg = makeCfg(main, opts)
   const log = makeLog(cfg)
   const notify = makeNotify(cfg, log)
-
-
   function initWatcher() {
+
     const watcher = chokidar.watch([], {
       usePolling: opts.poll,
       interval: parseInt(opts.interval) || undefined,
@@ -73,32 +69,21 @@ export const runDev = (
 
   let starting = false
 
-  // Read for "rs" from command line
-  if (opts.rs !== false) {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-      terminal: false,
-    })
-    rl.on('line', (line: string) => {
-      if (line.trim() === 'rs') {
-        restart('', true)
-      }
-    })
-  }
-
-  /**
-   * Run the wrapped script.
-   */
   function start() {
+    createCompiledDir(opts['cache-directory'])
     if (cfg.clear) process.stdout.write('\u001bc')
     for (const watched of (opts.watch || '').split(',')) {
       if (watched) watcher.add(watched)
     }
-    const hookArgs = compiler.hookChildArgs
-    let cmd = nodeArgs.concat(wrapper, script, scriptArgs, ...hookArgs)
+
+    let cmd = nodeArgs.concat(
+      wrapper,
+      script,
+      scriptArgs,
+      `--options=${JSON.stringify(opts)}`
+    )
     const childHookPath = glob.sync(
-      path.join(__dirname, 'child-complier.{js,ts}')
+      path.join(__dirname, 'child-compiler.{js,ts}')
     )[0]
 
     cmd = (opts.priorNodeArgs || []).concat(['-r', childHookPath]).concat(cmd)
@@ -112,9 +97,7 @@ export const runDev = (
 
     starting = false
 
-    let currentCompilePath: string
-
-    child.on('message', function (message: CompileParams) {
+    child.on('message', function (message) {
       //  TODO
     })
 
@@ -128,10 +111,6 @@ export const runDev = (
     if (cfg.respawn) {
       child.respawn = true
     }
-    // TODO 解决
-    // if (compiler.tsConfigPath) {
-    //   watcher.add(compiler.tsConfigPath)
-    // }
 
     // Listen for `required` messages and watch the required file.
     ipc.on(child, 'required', function (m: ipc.IPCMessage) {
@@ -179,19 +158,7 @@ export const runDev = (
   }
 
   function restart(file: string, isManualRestart?: boolean) {
-    if (file === compiler.tsConfigPath) {
-      notify('Reinitializing TS compilation', '')
-      compiler.init()
-    }
-    compiler.clearErrorCompile()
-
-    if (isManualRestart === true) {
-      notify('Restarting', 'manual restart from user')
-    } else {
-      notify('Restarting', file + ' has been modified')
-    }
-    // TODO 
-    // compiler.compileChanged(file)
+    notify('Restarting', file + ' has been modified')
 
     if (starting) {
       log.debug('Already starting')
@@ -224,8 +191,6 @@ export const runDev = (
     killChild()
     process.exit(0)
   })
-
-  const compiler = new Compiler(opts)
 
   start()
 }

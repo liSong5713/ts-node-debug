@@ -1,43 +1,22 @@
-const childProcess = require('child_process')
-import { fork, ForkOptions } from 'child_process'
 import { makeHook } from './hook'
-import * as ipc from './ipc'
-import { resolveMain } from './resolveMain'
-import { makeCfg } from './cfg'
+import * as ipc from './utils/ipc'
+import path from 'path'
+import glob from 'glob'
+import { makeCfg } from './utils/cfg'
 
 process.argv.splice(1, 1)
 
 // Resolve the location of the main script relative to cwd
-const main = resolveMain(process.argv[1])
-
+const main = glob.sync(path.resolve(process.argv[1]))[0]
 const cfg = makeCfg(main, {})
-
-if (process.env.TS_NODE_DEV === undefined) {
-  process.env.TS_NODE_DEV = 'true'
+if (!process.env.TS_NODE_DEBUG) {
+  process.env.TS_NODE_DEBUG = 'true'
 }
-
 
 // Listen SIGTERM and exit unless there is another listener
 process.on('SIGTERM', function () {
   if (process.listeners('SIGTERM').length === 1) process.exit(0)
 })
-
-if (cfg.fork) {
-  const oldFork = fork
-  // Overwrite child_process.fork() so that we can hook into forked processes
-  // too. We also need to relay messages about required files to the parent.
-  const newFork = function (
-    modulePath: string,
-    args: string[],
-    options: ForkOptions
-  ) {
-    const child = oldFork(__filename, [modulePath].concat(args), options)
-    ipc.relay(child)
-    return child
-  }
-  childProcess.fork = newFork
-}
-
 
 // Error handler that displays a notification and logs the stack to stderr:
 let caught = false

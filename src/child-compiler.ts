@@ -1,18 +1,25 @@
+import { Options } from './bin'
 import fs from 'fs'
-import { getCompiledPath } from './get-compiled-path'
-const minimist = require('minimist')
-const path = require('path')
-const Module = require('module')
-import * as tsNode from 'ts-node'
-// TODO typeCheck
-const tsCompiler = tsNode.create({ transpileOnly: true })
+import { getCompiledPath, getTSConfig } from './utils/helper'
+import path from 'path'
+import minimist from 'minimist'
+import Module from 'module'
+import { getTmpDir } from './utils/helper'
+import Compiler from './compiler'
 
 const opts = minimist(process.argv.slice(2))
-const { allowJs = false, preferTs = false, compiledDir = '' } = opts
+const options = JSON.parse(opts.options) as Options
+const compiledDir = getTmpDir(options['cache-directory'])
+const tsNodeConfig = getTSConfig(options.project)
+const complier = new Compiler(tsNodeConfig)
 
+// compile and cache result
 function compileAndCache(code: string, fileName: string): string {
   const compilePath = getCompiledPath(code, fileName, compiledDir)
-  const result = tsCompiler.compile(code, fileName)
+  if (fs.existsSync(compilePath)) {
+    return fs.readFileSync(compilePath, 'utf-8')
+  }
+  const result = complier.compile(code, fileName)
   fs.writeFile(compilePath, result, (err) => {
     if (err) {
       console.warn('write file fail:', compilePath)
@@ -35,7 +42,7 @@ function registerExtensions(extensions: string[]) {
     }
   })
 
-  if (preferTs) {
+  if (options['prefer-ts']) {
     const reorderRequireExtension = (ext: string) => {
       const old = require.extensions[ext]
       delete require.extensions[ext]

@@ -1,5 +1,5 @@
 import vm from 'vm'
-import { Config } from './cfg'
+import { Config } from './utils/cfg'
 
 declare const process: NodeJS.Process & { mainModule: NodeJS.Module }
 
