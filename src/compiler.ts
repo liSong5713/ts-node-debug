@@ -1,4 +1,5 @@
 import * as tsNode from 'ts-node'
+import { Service } from 'ts-node'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
@@ -31,7 +32,6 @@ export const makeCompiler = (
   }
 ) => {
   let _errorCompileTimeout: ReturnType<typeof setTimeout>
-  let allowJs = false
 
   const project = options['project']
   const tsConfigPath =
@@ -45,11 +45,9 @@ export const makeCompiler = (
 
   const getHookChildArgs = (options: Options) => {
     return [
-      allowJs && '--allowJs',
       options['exec-check'] && '--execCheck',
       options['prefer-ts-exts'] && '--preferTs',
       `--compiledDir=${getCompiledDir()}`,
-      `--readyFile=${getCompilerReadyFilePath()}`,
     ].filter((item) => item)
   }
 
@@ -59,18 +57,8 @@ export const makeCompiler = (
     /* clean up compiled on each new init*/
     // rimraf.sync(getCompiledDir())
     createCompiledDir()
-
-    // check if `allowJs` compiler option enable
-    // (.js handler was changed while ts-node registration)
-    allowJs = require.extensions['.js'] !== originalJsHandler
-    if (allowJs) {
-      compileExtensions.push('.js', '.jsx')
-    }
   }
 
-  const getCompilationId = () => {
-    return compilationInstanceStamp
-  }
   const createCompiledDir = () => {
     const compiledDir = getCompiledDir()
     if (!fs.existsSync(compiledDir)) {
@@ -79,18 +67,6 @@ export const makeCompiler = (
   }
   const getCompiledDir = () => {
     return path.join(tmpDir, 'compiled').replace(/\\/g, '/')
-  }
-  const getCompileReqFilePath = () => {
-    return path.join(getCompiledDir(), getCompilationId() + '.req')
-  }
-  const getCompilerReadyFilePath = () => {
-    return path
-      .join(os.tmpdir(), 'ts-node-dev-ready-' + compilationInstanceStamp)
-      .replace(/\\/g, '/')
-  }
-
-  const writeReadyFile = () => {
-    fs.writeFileSync(getCompilerReadyFilePath(), '')
   }
 
   const clearErrorCompile = () => {
@@ -140,9 +116,7 @@ export const makeCompiler = (
   const compiler = {
     tsConfigPath,
     init,
-    getCompileReqFilePath,
     getHookChildArgs,
-    writeReadyFile,
     clearErrorCompile,
     compileChanged: function (fileName: string): boolean {
       const ext = path.extname(fileName)
@@ -236,4 +210,47 @@ export const makeCompiler = (
   }
 
   return compiler
+}
+
+export default class Compiler {
+  options: Options
+  tmpDir: string
+  tsEngine: Service
+  tsConfigPath: string
+  private _errorCompileTimeout: ReturnType<typeof setTimeout>
+  constructor(options: Options) {
+    this.options = options
+    this.tsConfigPath = resolveSync(cwd, options.project) || ''
+    this.tmpDir = options['cache-directory']
+      ? path.resolve(options['cache-directory'])
+      : fs.mkdtempSync(path.join(os.tmpdir(), '.ts-node'))
+    this.init()
+  } 
+  init() {
+    this.createCompiledDir()
+    // TODO tsconfig.json 传入 typeCheck  transpileOnly
+    this.tsEngine = tsNode.create({ typeCheck: false, transpileOnly: true })
+  }
+  compile(code: string, fileName: string) {
+    this.tsEngine.compile(code, fileName)
+  }
+  get hookChildArgs() {
+    const { options } = this
+    return [
+      options['prefer-ts-exts'] && '--preferTs',
+      `--compiledDir=${this.compiledDir}`,
+    ].filter((item) => item)
+  }
+  get compiledDir() {
+    return path.join(this.tmpDir, 'compiled').replace(/\\/g, '/')
+  }
+  createCompiledDir() {
+    const compiledDir = this.compiledDir
+    if (!fs.existsSync(compiledDir)) {
+      mkdirp.sync(compiledDir)
+    }
+  }
+  clearErrorCompile = () => {
+    clearTimeout(this._errorCompileTimeout)
+  }
 }

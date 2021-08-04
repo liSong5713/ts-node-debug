@@ -16,9 +16,6 @@ if (process.env.TS_NODE_DEV === undefined) {
   process.env.TS_NODE_DEV = 'true'
 }
 
-if (process.env.NODE_DEV_PRELOAD) {
-  require(process.env.NODE_DEV_PRELOAD)
-}
 
 // Listen SIGTERM and exit unless there is another listener
 process.on('SIGTERM', function () {

@@ -9,7 +9,8 @@ const kill = require('tree-kill')
 import * as ipc from './ipc'
 import { resolveMain } from './resolveMain'
 import { Options } from './bin'
-import { makeCompiler, CompileParams } from './compiler'
+import Compiler, { makeCompiler, CompileParams } from './compiler'
+import Complier from './compiler'
 import { makeCfg } from './cfg'
 import { makeNotify } from './notify'
 import { makeLog } from './log'
@@ -46,8 +47,6 @@ export const runDev = (
   const log = makeLog(cfg)
   const notify = makeNotify(cfg, log)
 
-  // Run ./dedupe.js as preload script
-  if (cfg.dedupe) process.env.NODE_DEV_PRELOAD = __dirname + '/dedupe'
 
   function initWatcher() {
     const watcher = chokidar.watch([], {
@@ -96,17 +95,16 @@ export const runDev = (
     for (const watched of (opts.watch || '').split(',')) {
       if (watched) watcher.add(watched)
     }
-    const hookArgs = compiler.getHookChildArgs(opts)
+    const hookArgs = compiler.hookChildArgs
     let cmd = nodeArgs.concat(wrapper, script, scriptArgs, ...hookArgs)
     const childHookPath = glob.sync(
-      path.join(__dirname, 'child-require-hook.{js,ts}')
+      path.join(__dirname, 'child-complier.{js,ts}')
     )[0]
 
     cmd = (opts.priorNodeArgs || []).concat(['-r', childHookPath]).concat(cmd)
 
     log.debug('Starting child process %s', cmd.join(' '))
 
-    // start hook-child-process to complier
     child = fork(cmd[0], cmd.slice(1), {
       cwd: process.cwd(),
       env: process.env,
@@ -117,14 +115,7 @@ export const runDev = (
     let currentCompilePath: string
 
     child.on('message', function (message: CompileParams) {
-      if (
-        !message.compiledPath ||
-        currentCompilePath === message.compiledPath
-      ) {
-        return
-      }
-      currentCompilePath = message.compiledPath
-      compiler.compile(message)
+      //  TODO
     })
 
     child.on('exit', function (code) {
@@ -137,10 +128,10 @@ export const runDev = (
     if (cfg.respawn) {
       child.respawn = true
     }
-
-    if (compiler.tsConfigPath) {
-      watcher.add(compiler.tsConfigPath)
-    }
+    // TODO 解决
+    // if (compiler.tsConfigPath) {
+    //   watcher.add(compiler.tsConfigPath)
+    // }
 
     // Listen for `required` messages and watch the required file.
     ipc.on(child, 'required', function (m: ipc.IPCMessage) {
@@ -161,8 +152,6 @@ export const runDev = (
       notify(m.error!, m.message!, 'error')
       stop(m.willTerminate)
     })
-    // write ready file mean  start complier
-    compiler.writeReadyFile()
   }
   const killChild = () => {
     if (!child) return
@@ -201,7 +190,8 @@ export const runDev = (
     } else {
       notify('Restarting', file + ' has been modified')
     }
-    compiler.compileChanged(file)
+    // TODO 
+    // compiler.compileChanged(file)
 
     if (starting) {
       log.debug('Already starting')
@@ -235,12 +225,7 @@ export const runDev = (
     process.exit(0)
   })
 
-  const compiler = makeCompiler(opts, {
-    restart,
-    log: log,
-  })
-
-  compiler.init()
+  const compiler = new Compiler(opts)
 
   start()
 }
