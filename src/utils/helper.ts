@@ -10,7 +10,7 @@ import { CreateOptions } from 'ts-node'
 export function getTmpDir(dir: string) {
   return dir
     ? path.resolve(dir)
-    : fs.mkdtempSync(path.join(os.tmpdir(), '.ts-node'))
+    : path.join(os.tmpdir(), '.ts-node', md5(process.cwd()))
 }
 
 export function createCompiledDir(dir: string) {
@@ -35,9 +35,10 @@ export const getCompiledPath = (
   fileName: string,
   compiledDir: string
 ) => {
-  const hash = crypto
-    .createHash('MD5')
-    .update(fileName + code, 'utf8')
-    .digest('hex')
+  const hash = md5(fileName + code)
   return path.join(compiledDir, hash.concat('.js'))
+}
+
+function md5(str: string) {
+  return crypto.createHash('MD5').update(str, 'utf8').digest('hex')
 }
