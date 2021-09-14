@@ -17,7 +17,8 @@ const complier = new Compiler(tsNodeConfig)
 function compileAndCache(code: string, fileName: string): string {
   const compilePath = getCompiledPath(code, fileName, compiledDir)
   if (fs.existsSync(compilePath)) {
-    return fs.readFileSync(compilePath, 'utf-8')
+    const content = fs.readFileSync(compilePath, 'utf-8')
+    if (content) return content
   }
   const result = complier.compile(code, fileName)
   fs.writeFile(compilePath, result, (err) => {
