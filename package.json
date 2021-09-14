@@ -9,9 +9,10 @@
     "monitor",
     "watch"
   ],
+  "author": "song.li",
   "repository": {
     "type": "git",
-    "url": "http://github.com/whitecolor/ts-node-dev.git"
+    "url": "https://github.com/liSong5713/ts-node-debug"
   },
   "license": "MIT",
   "bin": {
@@ -56,7 +57,6 @@
     "@types/fs-extra": "^9.0.1",
     "@types/minimist": "^1.2.0",
     "@types/mkdirp": "^1.0.1",
-    "@types/mocha": "github:whitecolor/mocha-types",
     "@types/node": "^14.6.0",
     "@types/rimraf": "^3.0.0",
     "@types/tape": "^4.13.0",
