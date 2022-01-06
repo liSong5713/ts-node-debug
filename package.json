@@ -1,6 +1,6 @@
 {
   "name": "ts-node-debug",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Compiles your TS app and restarts when files are modified.",
   "keywords": [
     "restart",
