@@ -10,6 +10,13 @@ const cfg = makeCfg(main, {})
 if (!process.env.TS_NODE_DEBUG) {
   process.env.TS_NODE_DEBUG = 'true'
 }
+// ping parent process
+;(function heartbeat() {
+  if (process.send) {
+    process.send('ping~')
+    setTimeout(heartbeat, 2000)
+  }
+})()
 
 // Listen SIGTERM and exit unless there is another listener
 process.on('SIGTERM', function () {
@@ -21,6 +28,10 @@ let caught = false
 process.on('uncaughtException', function (err: any) {
   // NB: err can be null
   // Handle exception only once
+  if (err && err.code === 'ERR_IPC_CHANNEL_CLOSED') {
+    // when ipc channel is closed mean parent process is dead
+    process.kill(process.pid)
+  }
   if (caught) return
   caught = true
   // If there's a custom uncaughtException handler expect it to terminate
